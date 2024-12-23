@@ -25,7 +25,7 @@ if (isset($_POST['submitAdmin'])) {
         if (password_verify($password, $row['password'])) {
             // Correct password, login successful
             $_SESSION['admin_id'] = $row['userId'];
-            $_SESSION['admin_name'] = $row['username'];
+            $_SESSION['admin_name'] = $row['uName'];
             header("Location: ../dashboard/dashboard.php");
             exit();
         } else {

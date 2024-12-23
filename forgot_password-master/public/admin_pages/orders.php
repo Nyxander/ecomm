@@ -41,23 +41,7 @@
 
 require '../validate/conn.php';
 
-if (isset($_POST['delete_id'])) {
-    $user_id = filter_var($_POST['delete_id'], FILTER_SANITIZE_NUMBER_INT);
-    if (filter_var($user_id, FILTER_VALIDATE_INT)) {
-        $delete_query = "DELETE FROM users WHERE userId = ?";
-        if ($stmt = $conn->prepare($delete_query)) {
-            $stmt->bind_param('i', $user_id);
-            $stmt->execute();
-            if ($stmt->affected_rows > 0) {
-                header("Location: customers.php");
-                exit();
-            }
-        }
-    }
-}
-
-
-$query = "SELECT userId, uName, mail FROM users";
+$query = "SELECT order_id, name, email, total_price, payment_method, created_at FROM orders";
 $result = $conn->query($query);
 
 ?>
@@ -79,33 +63,27 @@ $result = $conn->query($query);
             var errorMessage = document.getElementById('error-message');
             var successMessage = document.getElementById('success-message');
 
-            // Hide error message if it exists
             if (errorMessage) {
                 errorMessage.style.display = 'none';
             }
 
-            // Hide success message if it exists
             if (successMessage) {
                 successMessage.style.display = 'none';
             }
-        }, 2000); // 2000 milliseconds = 2 seconds
+        }, 2000);
     };
 </script>
 
 <!DOCTYPE html>
 <html :class="{ 'theme-dark': dark }" x-data="data()" lang="en">
 <head>
+
+    <title>Orders</title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Customers</title>
-
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-          rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
     <link rel="stylesheet" href="../assets/css/tailwind.output.css" />
-    <script
-        src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js"
-        defer
-    ></script>
+    <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script>
     <script src="../assets/js/init-alpine.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script>
@@ -142,7 +120,8 @@ $result = $conn->query($query);
         <div class="py-4 text-gray-500 dark:text-gray-400">
             <a
                 class="ml-6 text-lg font-bold text-gray-800 dark:text-gray-200"
-                href="#">
+                href="#"
+            >
                 Book Keepers
             </a>
             <ul class="mt-6">
@@ -238,6 +217,8 @@ $result = $conn->query($query);
                     </a>
                 </li>
 
+
+
             </ul>
 
         </div>
@@ -245,9 +226,9 @@ $result = $conn->query($query);
     </aside>
 
     <div class="flex flex-col flex-1">
-        <header class="z-10 py-4 bg-white shadow-md dark:bg-gray-800">
 
-           <div class="container flex items-center justify-between h-full px-6 mx-auto text-purple-600 dark:text-purple-300">
+        <header class="z-10 py-4 bg-white shadow-md dark:bg-gray-800">
+            <div class="container flex items-center justify-between h-full px-6 mx-auto text-purple-600 dark:text-purple-300">
                 <button
                         class="p-1 -ml-1 mr-5 rounded-md md:hidden focus:outline-none focus:shadow-outline-purple"
                         @click="toggleSideMenu"
@@ -374,44 +355,47 @@ $result = $conn->query($query);
                             </ul>
                         </template>
                     </li>
-
                 </ul>
-           </div>
+            </div>
         </header>
 
-        <main class="h-full pb-16 overflow-y-auto ml-6">
 
-            <div class="my-6 text-2xl font-semibold text-gray-700 dark:text-gray-200">
-                <h2>User Management</h2> <br>
-                <table class="ml-2">
+        <main class="h-full pb-16 overflow-y-auto">
+
+            <h2  class="my-6 text-2xl font-semibold text-gray-700 dark:text-gray-200 ml-6"
+            >Orders</h2>
+
+            <div class="container flex items-center justify-between h-full px-6 mx-auto text-purple-600 dark:text-purple-300">
+                <br>
+
+                <table class="table-auto w-full border-collapse border border-gray-200 dark:border-gray-700">
                     <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Username</th>
-                        <th>Email</th>
-                        <th>Actions</th>
+                        <th class="border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-600 px-4 py-2">Order ID</th>
+                        <th class="border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-600 px-4 py-2">Name</th>
+                        <th class="border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-600 px-4 py-2">Email</th>
+                        <th class="border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-600 px-4 py-2">Total Price</th>
+                        <th class="border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-600 px-4 py-2">Payment Method</th>
+                        <th class="border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-600 px-4 py-2">Created At</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <?php while ($user = $result->fetch_assoc()): ?>
+                    <?php while ($order = $result->fetch_assoc()): ?>
                         <tr class="bg-white dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800">
-                            <td class="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 px-4 py-2"><?php echo $user['userId']; ?></td>
-                            <td class="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 px-4 py-2"><?php echo $user['uName']; ?></td>
-                            <td class="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 px-4 py-2"><?php echo $user['mail']; ?></td>
-                            <td class="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 px-4 py-2">
-                                <form action="customers.php" method="POST" onsubmit="return confirm('Are you sure you want to delete this user?')">
-                                    <input type="hidden" name="delete_id" value="<?php echo $user['userId']; ?>">
-                                    <button type="submit" class="delete-btn text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300">Delete</button>
-                                </form>
-                            </td>
+                            <td class="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 px-4 py-2"><?php echo $order['order_id']; ?></td>
+                            <td class="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 px-4 py-2"><?php echo $order['name']; ?></td>
+                            <td class="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 px-4 py-2"><?php echo $order['email']; ?></td>
+                            <td class="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 px-4 py-2"><?php echo $order['total_price'] . " $"; ?></td>
+                            <td class="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 px-4 py-2"><?php echo $order['payment_method']; ?></td>
+                            <td class="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 px-4 py-2"><?php echo $order['created_at']; ?></td>
                         </tr>
                     <?php endwhile; ?>
                     </tbody>
                 </table>
             </div>
         </main>
-    </div>
 
+    </div>
 
 </div>
 </body>

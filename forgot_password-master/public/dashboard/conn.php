@@ -4,13 +4,13 @@
 $dbHost = "localhost";
 $dbUser = "root";
 $dbPass = "your_password";
-$dbName = "dk_pw";
+$dbName = "ecom";
 
 // connect to the database
 
 $conn = mysqli_connect($dbHost, $dbUser, $dbPass,$dbName);
 if (!$conn) {
-    die ("Connection Failed");
+    echo "Connection Failed";
 }
 
 ?>
